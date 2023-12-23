@@ -92,10 +92,12 @@ class UserService {
             throw ApiError.BadRequest("Пользователя не существует")
         }
         let isHaveRole = false;
-        console.log(candidate)
+        const moderatorRole = await Role.findOne({value: "MODERATOR"})
+        const adminRole = await Role.findOne({value: "ADMIN"})
+        console.log(moderatorRole, adminRole)
 
         candidate.roles.forEach(item => {
-            if(item === "MODERATOR" || item === "ADMIN") {
+            if(item === moderatorRole.value || item === adminRole.value) {
                 isHaveRole = true;
             }
 
@@ -103,7 +105,7 @@ class UserService {
         if(isHaveRole === true) {
             throw ApiError.BadRequest("User is already MODERATOR")
         }
-        candidate.roles.push('MODERATOR')
+        candidate.roles.push(moderatorRole.value)
         candidate.save()
         return candidate
     }

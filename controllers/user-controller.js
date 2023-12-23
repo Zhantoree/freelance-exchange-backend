@@ -2,8 +2,6 @@ import UserService from "../service/user-service.js";
 import {validationResult} from "express-validator";
 import ApiError from "../exceptions/api-error.js";
 import userService from "../service/user-service.js";
-import UserModel from "../models/user-model.js";
-import Role from "../models/role-model.js";
 
 class UserController {
     // Для всех

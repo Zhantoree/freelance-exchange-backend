@@ -1,5 +1,4 @@
 import ApiError from "../exceptions/api-error.js";
-import jwt from "jsonwebtoken";
 import tokenService from "../service/token-service.js";
 
 export default function (roles) {
