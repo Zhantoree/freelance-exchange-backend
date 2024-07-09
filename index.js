@@ -1,43 +1,63 @@
-import express from 'express'
-import cors from 'cors'
-import cookieParser from 'cookie-parser'
-import dotenv from 'dotenv'
-import mongoose from "mongoose";
-import router from './router/index.js'
-import errorMiddleware from "./middleware/error-middleware.js";
-import authRouter from "./router/authRouter.js";
-import authMiddleware from "./middleware/auth-middleware.js";
+const dotenv = require('dotenv')
+const express = require('express')
+const cookieParser = require('cookie-parser')
+const cors = require('cors')
+const {LMStudioClient} = require("@lmstudio/sdk");
+const mainRouter = require("./router/index");
 
 dotenv.config()
 const PORT = process.env.PORT || 5000
-
 const app = express()
 
-//Middlewares
+// Middlewares
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
     credentials: true,
     origin: process.env.CLIENT_URL
 }));
-//Routes
-app.use('/api', authMiddleware, router)
-app.use('/auth', authRouter)
 
-//Middlewares
-app.use(errorMiddleware)
+// Routes
+app.use('/', mainRouter)
+
+let history = [
+    {role: "system", content: "You are a helpful AI assistant."}
+];
+
+let model; // Declare model variable in the higher scope
+
+async function chatWithAi(prompt) {
+    // Add prompt to history
+    history.push({role: "user", content: prompt});
+
+    // Predict!
+    const prediction = model.respond(history);
+    let answer = '';
+    for await (const text of prediction) {
+        answer += text;
+    }
+    history.push({role: "assistant", content: answer});
+
+    return {
+        lastAnswer: answer,
+        history: history
+    };
+}
+
+app.post('/hi', async(req, res, next) => {
+    const answer = await chatWithAi("Say, Bye ");
+    return res.json(answer);
+});
 
 const start = async () => {
     try {
-        await mongoose.connect(process.env.DB_URL, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-        })
-        console.log("DB connected successfully")
-        app.listen(PORT, () => console.log(`Server started on port: ${PORT}`))
+        // Create a client to connect to LM Studio, then load a model
+        const client = new LMStudioClient();
+        model = await client.llm.load("TheBloke/Llama-2-7B-Chat-GGUF/llama-2-7b-chat.Q3_K_L.gguf", { noHup: true });
+        app.listen(PORT, () => console.log(`Server started on port: ${PORT}`));
     } catch (e) {
-        console.log(e)
+        console.log(e);
     }
-}
+};
 
-start()
+start();

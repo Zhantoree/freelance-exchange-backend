@@ -5,7 +5,7 @@ const ProjectSchema = new mongoose.Schema({
     title: {type: String, required: true},
     description: {type: String, required: true},
     budget: {type: String, required: true},
-    status: {type: "OPEN" | "PENDING" | "CLOSED", required: true}
+    status: {type: String, value: "OPEN" | "PENDING" | "CLOSED", default: "OPEN"}
 })
 
 export default mongoose.model('Project', ProjectSchema)
